@@ -21,7 +21,7 @@ class AllMovieSerializer(serializers.ModelSerializer):
 
 
 class MovieSerializer(serializers.ModelSerializer):
-    shows = ShowSerializer(source="show", many=True)
+    shows = ShowSerializer(many=True)
 
     class Meta:
         model = Movie
@@ -29,14 +29,16 @@ class MovieSerializer(serializers.ModelSerializer):
 
 
 class CreateBookingSerializer(serializers.ModelSerializer):
+    show = ShowSerializer(read_only=True)
+
     class Meta:
         model = Booking
-        fields = ["seat_number"]
+        fields = ["user", "show", "seat_number", "status", "created_at"]
         read_only_fields = ["user", "show", "status", "created_at"]
 
     def create(self, validated_data):
         user_instance = self.context["request"].user
-        show_id = self.context.get("show_id")
+        show_id = self.context["show_id"]
 
         with transaction.atomic():
             show = Show.objects.select_for_update().get(pk=show_id)
@@ -65,3 +67,28 @@ class CreateBookingSerializer(serializers.ModelSerializer):
             )
 
             return booking
+
+
+# My booking section
+
+
+class MyBookingMovieSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Movie
+        fields = ["id", "title", "duration_minutes"]
+
+
+class MyBookingShowSerializer(serializers.ModelSerializer):
+    movie = MyBookingMovieSerializer(read_only=True)
+
+    class Meta:
+        model = Show
+        fields = ["id", "movie", "screen_name", "date_time", "total_seat"]
+
+
+class MyBookingSerializer(serializers.ModelSerializer):
+    show = MyBookingShowSerializer()
+
+    class Meta:
+        model = Booking
+        fields = ["id", "show", "status", "seat_number", "created_at"]

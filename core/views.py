@@ -2,13 +2,15 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import generics
+from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
 from .serializers import (
     AllMovieSerializer,
     MovieSerializer,
     CreateBookingSerializer,
+    MyBookingSerializer,
 )
-from .models import Movie, Show, Booking
+from .models import Movie, Booking
 
 # Create your views here.
 
@@ -19,6 +21,8 @@ class GetAllMoviesApiView(generics.ListAPIView):
 
 
 class MovieApiView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def get_queryset(self, movie_id):
         return get_object_or_404(Movie, pk=movie_id)
 
@@ -35,6 +39,7 @@ class MovieApiView(APIView):
 
 
 class BookApiView(APIView):
+    permission_classes = [IsAuthenticated]
 
     def post(self, request, show_id):
         serializer = CreateBookingSerializer(
@@ -45,3 +50,38 @@ class BookApiView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class CancelBookingApiView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, booking_id):
+        booking_instance = get_object_or_404(Booking, pk=booking_id, user=request.user)
+
+        if booking_instance.status == "cancelled":
+            return Response(
+                {"detail": "This booking is already cancelled."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        booking_instance.status = "cancelled"
+        booking_instance.save()
+
+        return Response(
+            {
+                "detail": "Booking cancelled successfully",
+                "booking_id": booking_instance.id,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
+class MyBookingApiView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        booking_instance = Booking.objects.filter(user=request.user).select_related(
+            "show", "show__movie"
+        )
+        serializer = MyBookingSerializer(instance=booking_instance, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)

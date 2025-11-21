@@ -17,4 +17,14 @@ urlpatterns = [
         views.BookApiView.as_view(),
         name="book-show",
     ),
+    path(
+        "my-bookings/",
+        views.MyBookingApiView.as_view(),
+        name="my-bookings",
+    ),
+    path(
+        "bookings/<booking_id>/cancel/",
+        views.CancelBookingApiView.as_view(),
+        name="cancel-booking",
+    ),
 ]

@@ -28,7 +28,7 @@ class Show(models.Model):
     movie = models.ForeignKey(
         Movie,
         on_delete=models.CASCADE,
-        related_name="show",
+        related_name="shows",
     )
     screen_name = models.CharField(
         null=False,
