@@ -1,5 +1,5 @@
 **Objective:** Design and implement a backend system for a Movie Ticket Booking application using Django and Django REST Framework.
-
+By Adith-p
 ###  Tech Stack
 * **Language:** Python
 * **Frameworks:** Django, Django REST Framework
