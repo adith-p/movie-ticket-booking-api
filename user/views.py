@@ -2,14 +2,26 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
 from django.db import IntegrityError
+from drf_spectacular.utils import extend_schema
 
 from .models import User
 from .serializers import UserSignUpSerializer
+from .schema import responses
+
 
 # Create your views here.
 
 
 class SignUpApiView(APIView):
+    @extend_schema(
+        request=UserSignUpSerializer,
+        responses={
+            201: responses.user_signup_200,
+            400: responses.user_signup_400,
+            409: responses.user_signup_409
+
+        }
+    )
     def post(self, request):
         serializer = UserSignUpSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
@@ -26,7 +38,7 @@ class SignUpApiView(APIView):
                 """
                 return Response(
                     data={"detail": "username or email already exists"},
-                    status=status.HTTP_400_BAD_REQUEST,
+                    status=status.HTTP_409_CONFLICT,
                 )
 
         return Response(

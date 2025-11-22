@@ -1,8 +1,6 @@
 from rest_framework import serializers
-from django.shortcuts import get_object_or_404
-
+from rest_framework import status
 from django.db import transaction  # to do atomic transaction
-from django.db.models import Q
 from user.models import User
 from .models import Movie, Booking, Show
 
@@ -41,23 +39,39 @@ class CreateBookingSerializer(serializers.ModelSerializer):
         show_id = self.context["show_id"]
 
         with transaction.atomic():
-            show = Show.objects.select_for_update().get(pk=show_id)
-            if show.total_seat < validated_data["seat_number"]:
+            try:
+                show = Show.objects.select_for_update().get(pk=show_id)
+            except Show.DoesNotExist:
                 raise serializers.ValidationError(
-                    "seat number can't exceed total seats"
+                    {"details": f"show with id {show_id} does not exist"},
+                    code=status.HTTP_404_NOT_FOUND,
                 )
 
-            curr_booking_count = Booking.objects.filter(show=show, status="booked")
+            if (
+                show.total_seat < validated_data["seat_number"]
+                or validated_data["seat_number"] <= 0
+            ):
+                raise serializers.ValidationError(
+                    {"detail": f"select a valid seat range ( 0 - {
+                        show.total_seat} )"},
+                    code=status.HTTP_400_BAD_REQUEST,
+                )
+
+            curr_booking_count = Booking.objects.filter(
+                show=show, status="booked")
 
             if curr_booking_count.count() >= show.total_seat:
-                raise serializers.ValidationError("sold out!")
+                raise serializers.ValidationError(
+                    {"detail": "sold out!"}, code=status.HTTP_409_CONFLICT
+                )
 
             overlaping_booking = curr_booking_count.filter(
                 seat_number=validated_data["seat_number"], status="booked"
             ).exists()
 
             if overlaping_booking:
-                raise serializers.ValidationError("this seats already been booked")
+                raise serializers.ValidationError(
+                    "this seats already been booked")
 
             booking = Booking.objects.create(
                 user=user_instance,
@@ -83,7 +97,7 @@ class MyBookingShowSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Show
-        fields = ["id", "movie", "screen_name", "date_time", "total_seat"]
+        fields = ["id",  "screen_name", "date_time", "total_seat", "movie"]
 
 
 class MyBookingSerializer(serializers.ModelSerializer):
@@ -91,4 +105,13 @@ class MyBookingSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Booking
-        fields = ["id", "show", "status", "seat_number", "created_at"]
+        fields = ["id",  "status", "seat_number", "created_at", "show"]
+
+
+# Request - only serializers
+
+
+class BookingInputSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Booking
+        fields = ["seat_number"]

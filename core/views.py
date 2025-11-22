@@ -3,14 +3,17 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
-from django.shortcuts import get_object_or_404
+from drf_spectacular.utils import extend_schema
+
 from .serializers import (
     AllMovieSerializer,
     MovieSerializer,
     CreateBookingSerializer,
     MyBookingSerializer,
+    BookingInputSerializer,
 )
 from .models import Movie, Booking
+from .schema import responses
 
 # Create your views here.
 
@@ -24,8 +27,9 @@ class MovieApiView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self, movie_id):
-        return get_object_or_404(Movie, pk=movie_id)
+        return Movie.objects.get(pk=movie_id)
 
+    @extend_schema(responses={200: MovieSerializer, 404: responses.movie_show_404})
     def get(self, request, movie_id):
         try:
             movie_queryset = self.get_queryset(movie_id)
@@ -41,6 +45,15 @@ class MovieApiView(APIView):
 class BookApiView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        request=BookingInputSerializer,
+        responses={
+            400: responses.book_show_400,
+            404: responses.book_show_404,
+            409: responses.book_show_409
+
+        }
+    )
     def post(self, request, show_id):
         serializer = CreateBookingSerializer(
             data=request.data,
@@ -55,13 +68,30 @@ class BookApiView(APIView):
 class CancelBookingApiView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def post(self, request, booking_id):
-        booking_instance = get_object_or_404(Booking, pk=booking_id, user=request.user)
+    def get_queryset(self, booking_id, user):
+        return Booking.objects.get(pk=booking_id, user=user)
 
+    @extend_schema(
+        responses={
+            200: responses.cancel_booking_200,
+            404: responses.cancel_booking_404,
+            409: responses.cancel_booking_409
+        }
+    )
+    def post(self, request, booking_id):
+        try:
+            booking_instance = self.get_queryset(booking_id, request.user)
+        except Booking.DoesNotExist:
+            return Response(
+                data={
+                    "details": f"booking with id {booking_id} does not exist"
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
         if booking_instance.status == "cancelled":
             return Response(
-                {"detail": "This booking is already cancelled."},
-                status=status.HTTP_400_BAD_REQUEST,
+                data={"detail": "This booking is already cancelled."},
+                status=status.HTTP_409_CONFLICT,
             )
 
         booking_instance.status = "cancelled"
@@ -79,6 +109,7 @@ class CancelBookingApiView(APIView):
 class MyBookingApiView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(responses={200: MyBookingSerializer})
     def get(self, request):
         booking_instance = Booking.objects.filter(user=request.user).select_related(
             "show", "show__movie"

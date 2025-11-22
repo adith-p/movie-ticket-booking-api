@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     # dependencies
     "rest_framework",
     "rest_framework_simplejwt",
+    "drf_spectacular",
     # apps
     "user.apps.UserConfig",
     "core.apps.CoreConfig",
@@ -138,6 +139,7 @@ REST_FRAMEWORK = {
     ),
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 10,
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
@@ -145,4 +147,12 @@ SIMPLE_JWT = {
     "ROTATE_REFRESH_TOKENS": True,
     "BLACKLIST_AFTER_ROTATION": True,
     "UPDATE_LAST_LOGIN": True,
+}
+SPECTACULAR_SETTINGS = {
+    "TITLE": "My Project API",
+    "DESCRIPTION": "Documentation for Booking System",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+    # This automatically finds your SimpleJWT settings!
+    # No need to manually define "Bearer" security definitions.
 }
