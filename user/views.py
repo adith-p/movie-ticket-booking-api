@@ -13,6 +13,10 @@ from .schema import responses
 
 
 class SignUpApiView(APIView):
+    """
+    Public endpoint for user registration.
+    """
+
     @extend_schema(
         request=UserSignUpSerializer,
         responses={

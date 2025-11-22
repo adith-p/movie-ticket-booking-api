@@ -19,11 +19,15 @@ from .schema import responses
 
 
 class GetAllMoviesApiView(generics.ListAPIView):
+    """Public endpoint to list all movies."""
+
     queryset = Movie.objects.all()
     serializer_class = AllMovieSerializer
 
 
 class MovieApiView(APIView):
+    """Retrieve a single movie and its scheduled shows."""
+
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self, movie_id):
@@ -43,10 +47,12 @@ class MovieApiView(APIView):
 
 
 class BookApiView(APIView):
+    """Endpoint to book a ticket for a specific show."""
+
     permission_classes = [IsAuthenticated]
 
     @extend_schema(
-        request=BookingInputSerializer,
+        request=responses.book_show_request,
         responses={
             400: responses.book_show_400,
             404: responses.book_show_404,
@@ -65,6 +71,8 @@ class BookApiView(APIView):
 
 
 class CancelBookingApiView(APIView):
+    """Cancel a user's booking."""
+
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self, booking_id, user):
@@ -82,7 +90,10 @@ class CancelBookingApiView(APIView):
             booking_instance = self.get_queryset(booking_id, request.user)
         except Booking.DoesNotExist:
             return Response(
-                data={"details": f"booking with id {booking_id} does not exist"},
+                data={
+                    "details": f"booking with id {
+                    booking_id} does not exist"
+                },
                 status=status.HTTP_404_NOT_FOUND,
             )
         if booking_instance.status == "cancelled":
@@ -104,10 +115,13 @@ class CancelBookingApiView(APIView):
 
 
 class MyBookingApiView(APIView):
+    """List all bookings made by the currently logged-in user."""
+
     permission_classes = [IsAuthenticated]
 
     @extend_schema(responses={200: MyBookingSerializer})
     def get(self, request):
+        # select_related is used to avoid the multiple query and optimize for N + 1 problem
         booking_instance = Booking.objects.filter(user=request.user).select_related(
             "show", "show__movie"
         )

@@ -27,6 +27,11 @@ class MovieSerializer(serializers.ModelSerializer):
 
 
 class CreateBookingSerializer(serializers.ModelSerializer):
+    """
+    Serializer for creating a new booking.
+    Handles atomic transactions and row locking to prevent overbooking.
+    """
+
     show = ShowSerializer(read_only=True)
 
     class Meta:
@@ -54,7 +59,7 @@ class CreateBookingSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     {
                         "detail": f"select a valid seat range ( 0 - {
-                        show.total_seat} )"
+                            show.total_seat} )"
                     },
                     code=status.HTTP_400_BAD_REQUEST,
                 )
@@ -101,6 +106,8 @@ class MyBookingShowSerializer(serializers.ModelSerializer):
 
 
 class MyBookingSerializer(serializers.ModelSerializer):
+    """Serializer for viewing user's own bookings with nested show details."""
+
     show = MyBookingShowSerializer()
 
     class Meta:
@@ -112,6 +119,8 @@ class MyBookingSerializer(serializers.ModelSerializer):
 
 
 class BookingInputSerializer(serializers.ModelSerializer):
+    """ghost serializer for seat_number"""
+
     class Meta:
         model = Booking
         fields = ["seat_number"]
