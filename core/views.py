@@ -52,7 +52,7 @@ class BookApiView(APIView):
     permission_classes = [IsAuthenticated]
 
     @extend_schema(
-        request=responses.book_show_request,
+        request=BookingInputSerializer,
         responses={
             400: responses.book_show_400,
             404: responses.book_show_404,
@@ -92,7 +92,7 @@ class CancelBookingApiView(APIView):
             return Response(
                 data={
                     "details": f"booking with id {
-                    booking_id} does not exist"
+                        booking_id} does not exist"
                 },
                 status=status.HTTP_404_NOT_FOUND,
             )
