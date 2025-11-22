@@ -18,9 +18,8 @@ class SignUpApiView(APIView):
         responses={
             201: responses.user_signup_200,
             400: responses.user_signup_400,
-            409: responses.user_signup_409
-
-        }
+            409: responses.user_signup_409,
+        },
     )
     def post(self, request):
         serializer = UserSignUpSerializer(data=request.data)

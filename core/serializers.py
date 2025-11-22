@@ -52,26 +52,26 @@ class CreateBookingSerializer(serializers.ModelSerializer):
                 or validated_data["seat_number"] <= 0
             ):
                 raise serializers.ValidationError(
-                    {"detail": f"select a valid seat range ( 0 - {
-                        show.total_seat} )"},
+                    {
+                        "detail": f"select a valid seat range ( 0 - {
+                        show.total_seat} )"
+                    },
                     code=status.HTTP_400_BAD_REQUEST,
                 )
 
-            curr_booking_count = Booking.objects.filter(
-                show=show, status="booked")
+            curr_bookings = Booking.objects.filter(show=show, status="booked")
 
-            if curr_booking_count.count() >= show.total_seat:
+            if curr_bookings.count() >= show.total_seat:
                 raise serializers.ValidationError(
                     {"detail": "sold out!"}, code=status.HTTP_409_CONFLICT
                 )
 
-            overlaping_booking = curr_booking_count.filter(
+            overlaping_booking = curr_bookings.filter(
                 seat_number=validated_data["seat_number"], status="booked"
             ).exists()
 
             if overlaping_booking:
-                raise serializers.ValidationError(
-                    "this seats already been booked")
+                raise serializers.ValidationError("this seats already been booked")
 
             booking = Booking.objects.create(
                 user=user_instance,
@@ -97,7 +97,7 @@ class MyBookingShowSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Show
-        fields = ["id",  "screen_name", "date_time", "total_seat", "movie"]
+        fields = ["id", "screen_name", "date_time", "total_seat", "movie"]
 
 
 class MyBookingSerializer(serializers.ModelSerializer):
@@ -105,7 +105,7 @@ class MyBookingSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Booking
-        fields = ["id",  "status", "seat_number", "created_at", "show"]
+        fields = ["id", "status", "seat_number", "created_at", "show"]
 
 
 # Request - only serializers

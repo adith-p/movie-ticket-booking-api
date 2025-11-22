@@ -50,9 +50,8 @@ class BookApiView(APIView):
         responses={
             400: responses.book_show_400,
             404: responses.book_show_404,
-            409: responses.book_show_409
-
-        }
+            409: responses.book_show_409,
+        },
     )
     def post(self, request, show_id):
         serializer = CreateBookingSerializer(
@@ -75,7 +74,7 @@ class CancelBookingApiView(APIView):
         responses={
             200: responses.cancel_booking_200,
             404: responses.cancel_booking_404,
-            409: responses.cancel_booking_409
+            409: responses.cancel_booking_409,
         }
     )
     def post(self, request, booking_id):
@@ -83,9 +82,7 @@ class CancelBookingApiView(APIView):
             booking_instance = self.get_queryset(booking_id, request.user)
         except Booking.DoesNotExist:
             return Response(
-                data={
-                    "details": f"booking with id {booking_id} does not exist"
-                },
+                data={"details": f"booking with id {booking_id} does not exist"},
                 status=status.HTTP_404_NOT_FOUND,
             )
         if booking_instance.status == "cancelled":
