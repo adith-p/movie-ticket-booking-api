@@ -149,7 +149,7 @@ SIMPLE_JWT = {
     "UPDATE_LAST_LOGIN": True,
 }
 SPECTACULAR_SETTINGS = {
-    "TITLE": "My Project API",
+    "TITLE": "Movie Booking API",
     "DESCRIPTION": "Documentation for Booking System",
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,

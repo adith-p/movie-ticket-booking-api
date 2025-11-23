@@ -12,8 +12,14 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         faker = Faker()
         admin_instance = User.objects.create(
-            is_superuser=True, username=faker.user_name(), password="admin"
+            is_superuser=True,
+            username=faker.user_name(),
+            is_active=True,
         )
+        admin_instance.set_password("admin")
+        admin_instance.save()
+
+        # create movie entry
         movie_instance = Movie.objects.create(
             title="movie1", duration_minutes=timedelta(minutes=30)
         )
