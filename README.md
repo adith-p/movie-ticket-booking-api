@@ -55,7 +55,7 @@ source .venv/bin/activate
 ```
 Apply Migrations:
 
-using pip
+using python
 ```
 python manage.py migrate
 ```
@@ -63,9 +63,20 @@ using uv
 ```
 uv run manage migrate
 ```
+Run seed command to populate db
+
+using python
+```
+python manage.py seed
+```
+using uv
+```
+uv run manage.py seed
+```
+
 Runserver
 
-using pip
+using python
 ```
 python manage.py runserver
 ```
