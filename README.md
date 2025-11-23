@@ -1,11 +1,14 @@
 **Objective:** Design and implement a backend system for a Movie Ticket Booking application using Django and Django REST Framework.
 
+
 * By Adith-p
+
+  ```note: run seed command```
 ###  Tech Stack
 * **Language:** Python
 * **Frameworks:** Django, Django REST Framework
 * **Authentication:** JWT (JSON Web Tokens)
-* **Documentation:** Swagger (drf-spectacular/drf-yasg)
+* **Documentation:** Swagger (drf-spectacular)
 
 ###  Database Models
 1.  **Movie:** `title`, `duration_minutes`
